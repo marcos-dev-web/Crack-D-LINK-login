@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const host = '192.168.11.1';
+const host = '192.168.11.1';  // change it
 
 function hex_md5(s) { return rstr2hex(rstr_md5(str2rstr_utf8(s))); }
 function b64_md5(s) { return rstr2b64(rstr_md5(str2rstr_utf8(s))); }
@@ -313,6 +313,7 @@ async function tryLogin(password) {
 	}
 }
 
+// put the possible passwords here
 const passwords = ['admin123', 'Admin', 'admin', 'p@ssw0rd'];
 
 (async () => {
